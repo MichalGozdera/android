@@ -1,5 +1,7 @@
 package cokeman.pl.dozeswitcher;
 
+import android.content.DialogInterface;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.CompoundButton;
@@ -15,7 +17,6 @@ import java.io.OutputStream;
 public class MainActivity extends AppCompatActivity {
     private Switch dozeSwitch;
     private TextView dozeReader;
-    private TextView lifecycle;
     private TextView sdk;
 
     @Override
@@ -24,9 +25,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         dozeSwitch = (Switch) findViewById(R.id.switch1);
         dozeReader = (TextView) findViewById(R.id.dozeReader);
-        lifecycle = (TextView) findViewById(R.id.textView2);
         sdk = (TextView) findViewById(R.id.textView3);
-        lifecycle.setText("OnCreate");
+
         startupStatus();
         dozeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -53,38 +53,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onRestart() {
-        startupStatus();
-        super.onRestart();
-        lifecycle.setText("OnRestart");
-    }
-
-    @Override
-    protected void onStart() {
-        startupStatus();
-        super.onStart();
-        lifecycle.setText("OnStart");
-    }
-
-    @Override
-    protected void onResume() {
-        startupStatus();
-        super.onResume();
-        lifecycle.setText("OnResume");
-    }
-
     private Boolean checkDozeStatus() {
 
         try {
             // Executes the command.
             Process process = Runtime.getRuntime().exec("su");
             OutputStream out = process.getOutputStream();
-            if(getSDK()>23&&getSDK()<26) {
+            if (getSDK() > 23 && getSDK() < 26) {
                 sdk.setText("Nougat");
                 out.write("dumpsys deviceidle | grep mDeepEnabled\n".getBytes());
-            }
-            else if(getSDK()==23){
+            } else if (getSDK() == 23) {
                 sdk.setText("Marshmallow");
                 out.write("dumpsys deviceidle | grep mEnabled\n".getBytes());
             }
@@ -106,11 +84,37 @@ public class MainActivity extends AppCompatActivity {
             String s = output.toString();
             if (s.contains("true")) {
                 return true;
+            } else if (s.equals("")) {
+                AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+                builder1.setTitle("Missing root");
+                builder1.setMessage("Please root your device first");
+                builder1.setCancelable(false);
+                builder1.setNeutralButton(android.R.string.ok,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                finish();
+                            }
+                        });
+                AlertDialog alert11 = builder1.create();
+                alert11.show();
+                return false;
             } else {
                 return false;
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+            builder1.setTitle("Missing root");
+            builder1.setMessage("Please root your device first");
+            builder1.setCancelable(false);
+            builder1.setNeutralButton(android.R.string.ok,
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            finish();
+                        }
+                    });
+            AlertDialog alert11 = builder1.create();
+            alert11.show();
+            return false;
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -119,10 +123,7 @@ public class MainActivity extends AppCompatActivity {
     private Integer getSDK() {
         try {
             // Executes the command.
-            Process process = Runtime.getRuntime().exec("su");
-            OutputStream out = process.getOutputStream();
-            out.write("getprop ro.build.version.sdk\n".getBytes());
-            out.close();
+            Process process = Runtime.getRuntime().exec("getprop ro.build.version.sdk\n");
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream()));
 
@@ -137,11 +138,11 @@ public class MainActivity extends AppCompatActivity {
 
             process.waitFor();
 
-           String s= output.toString().replaceAll("\\D","");
-           return Integer.parseInt(s);
+            String s = output.toString().replaceAll("\\D", "");
+            return Integer.parseInt(s);
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

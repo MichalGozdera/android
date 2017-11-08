@@ -62,7 +62,11 @@ public class MainActivity extends AppCompatActivity {
             if (getSDK() > 23 && getSDK() < 26) {
                 sdk.setText("Nougat");
                 out.write("dumpsys deviceidle | grep mDeepEnabled\n".getBytes());
-            } else if (getSDK() == 23) {
+            }
+            else if (getSDK() > 25) {
+                sdk.setText("Oreo");
+                out.write("dumpsys deviceidle | grep mDeepEnabled\n".getBytes());
+            }else if (getSDK() == 23) {
                 sdk.setText("Marshmallow");
                 out.write("dumpsys deviceidle | grep mEnabled\n".getBytes());
             }

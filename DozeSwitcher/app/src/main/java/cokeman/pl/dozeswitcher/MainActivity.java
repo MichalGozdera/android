@@ -43,8 +43,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void initControls() {
         dozeSwitch = (Switch) findViewById(R.id.switch1);
-        dozeReaderTv = (TextView) findViewById(R.id.dozeReader_tv);
-        sdkVersionNumberTv = (TextView) findViewById(R.id.textView);
+        dozeReaderTv = (TextView) findViewById(R.id.doze_reader_tv);
+        sdkVersionNumberTv = (TextView) findViewById(R.id.text_view);
     }
 
     private void setListeners() {

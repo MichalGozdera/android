@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">DozeSwitcher</string>
+    <string name="off">off</string>
+    <string name="on">on</string>
+    <string name="sdk">SDK</string>
+    <string name="doze_enabled">Doze enabled</string>
+    <string name="doze_disabled">Doze disabled</string>
+    <string name="enabled">enabled</string>
+    <string name="disabled">disabled</string>
+    <string name="missing_root_title">Missing root</string>
+    <string name="missing_root_description">Please root your device first</string>
+    <string name="doze_status">Doze %s</string>
 </resources>

@@ -8,11 +8,23 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/getGps"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Odszukaj Dorotkę" />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/getGps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Odszukaj Dorotkę" />
+
+        <Button
+            android:id="@+id/gps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="znajdz misia" />
+    </LinearLayout>
 
 
     <TextView
@@ -23,7 +35,7 @@
 
 
     <org.osmdroid.views.MapView
-    android:id="@+id/osm"
-    android:layout_width="397dp"
-    android:layout_height="424dp" />
+        android:id="@+id/osm"
+        android:layout_width="397dp"
+        android:layout_height="424dp" />
 </LinearLayout>

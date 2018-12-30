@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Missed Calls and SMS Reminder</string>
+    <string name="number_of_repeats">Number of repeats:</string>
+    <string name="enabled">Enabled</string>
+    <string name="vibration_length">Vibration Length:</string>
+    <string name="pause_length">Pause Length:</string>
+</resources>

@@ -16,15 +16,11 @@ import android.media.AudioManager
 
 
 class ScreenReceiver : BroadcastReceiver() {
-
-
     var vibrateFlag = false
-    lateinit var vib:Vibrator
-    lateinit var context1 :Context
+    lateinit var thread: Thread
     override fun onReceive(context: Context, intent: Intent) {
-        context1=context
         val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        vib = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        val vib = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         val unreadMessagesCount = getUnreadSMSCount(context)
         val missedCallsCount = getUnreadMissedCallsCount(context)
 
@@ -32,13 +28,39 @@ class ScreenReceiver : BroadcastReceiver() {
                 AudioManager.RINGER_MODE_SILENT
             )
         ) {
-            vibrateFlag=true
-            vibServ.start()
+            vibrateFlag = true
+            thread = Thread(Runnable {
+                run() {
+                    val preferences =
+                        context.getSharedPreferences("gozdi.eu.missedcallandsmsreminder", Context.MODE_PRIVATE)
+                    val pauseLength = preferences.getInt(context.getString(R.string.pause_length), 500)
+                    val vibrationLength = preferences.getInt(context.getString(R.string.vibration_length), 2500)
+                    val repeatsCount = preferences.getInt(context.getString(R.string.number_of_repeats), 5)
+                    var effect: VibrationEffect =
+                        VibrationEffect.createWaveform(longArrayOf(0, vibrationLength.toLong()), 0)
+                    try {
+                        for (i in 1..repeatsCount) {
+                            Log.i("watek", "dziala")
+                            vib.vibrate(effect)
+                            Thread.sleep(vibrationLength.toLong())
+                            vib.cancel()
+                            Thread.sleep(pauseLength.toLong())
+                        }
+                    } catch (e: InterruptedException) {
+                        vib.cancel()
+                        Thread.currentThread().interrupt()
+                    }
 
-        } else if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)&&vibrateFlag==true) {
+                }
+            }
+            )
+            thread.start()
+        } else if (intent.getAction().equals(Intent.ACTION_SCREEN_ON) && vibrateFlag == true) {
             vib.cancel()
-            vibServ.interrupt()
-            vibrateFlag=false
+            thread.interrupt()
+            Log.i("watek", "przerwany")
+            vibrateFlag = false
+
             SMSReceiver.finito(context)
         }
     }
@@ -62,28 +84,6 @@ class ScreenReceiver : BroadcastReceiver() {
         c.moveToFirst()
         val unreadMessagesCount = c.getInt(0)
         return unreadMessagesCount
-    }
-
-    val vibServ = object : Thread() {
-        override fun run() {
-            var context=context1
-            val preferences = context.getSharedPreferences("gozdi.eu.missedcallandsmsreminder", Context.MODE_PRIVATE)
-            val pauseLength = preferences.getInt(context.getString(R.string.pause_length), 500)
-            val vibrationLength = preferences.getInt(context.getString(R.string.vibration_length), 2500)
-            val repeatsCount = preferences.getInt(context.getString(R.string.number_of_repeats), 5)
-            var effect: VibrationEffect = VibrationEffect.createWaveform(longArrayOf(0, vibrationLength.toLong()), 0)
-            try {
-                for (i in 1..repeatsCount) {
-                    vib.vibrate(effect)
-                    Thread.sleep(vibrationLength.toLong())
-                    vib.cancel()
-                    Thread.sleep(pauseLength.toLong())
-                }
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
-            }
-
-        }
     }
 
 }

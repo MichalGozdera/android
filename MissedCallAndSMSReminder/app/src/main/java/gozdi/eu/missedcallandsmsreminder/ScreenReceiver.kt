@@ -5,62 +5,55 @@ import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.SharedPreferences
+import android.media.AudioAttributes
 import android.net.Uri
-import android.os.VibrationEffect
+
 import android.os.Vibrator
 import android.util.Log
 import android.provider.CallLog
 import android.widget.Toast
-import android.support.v4.content.ContextCompat.getSystemService
+
 import android.media.AudioManager
+import android.os.PowerManager
+import android.os.VibrationEffect
 
 
 class ScreenReceiver : BroadcastReceiver() {
     var vibrateFlag = false
-    lateinit var thread: Thread
     override fun onReceive(context: Context, intent: Intent) {
         val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        val vib = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         val unreadMessagesCount = getUnreadSMSCount(context)
         val missedCallsCount = getUnreadMissedCallsCount(context)
-
+        val preferences =
+            context.getSharedPreferences("gozdi.eu.missedcallandsmsreminder", Context.MODE_PRIVATE)
+        val pauseLength = preferences.getInt(context.getString(R.string.pause_length), 500).toLong()
+        val vibrationLength = preferences.getInt(context.getString(R.string.vibration_length), 2500).toLong()
+        val repeatsCount = preferences.getInt(context.getString(R.string.number_of_repeats), 5)
+        val pattern = Array<Long>(repeatsCount * 2 + 1, { i -> 0 })
+        val aplitudePattern = Array<Int>(repeatsCount * 2 + 1, { i -> 0 })
+        for (i in 1..repeatsCount) {
+            pattern.set(i * 2 - 1, vibrationLength)
+            aplitudePattern.set(i * 2 - 1, 255)
+            pattern.set(i * 2, pauseLength)
+        }
+        val vib = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        val effect = VibrationEffect.createWaveform(pattern.toLongArray(),aplitudePattern.toIntArray(),-1)
+        val screenLock = (context.getSystemService(Context.POWER_SERVICE) as PowerManager).newWakeLock(
+            PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG:ScreenON"
+        )
         if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF) && (unreadMessagesCount > 0 || missedCallsCount > 0) && !am.ringerMode.equals(
-                AudioManager.RINGER_MODE_SILENT
-            )
+                AudioManager.RINGER_MODE_SILENT) && vibrateFlag==false
         ) {
+            screenLock.acquire(repeatsCount * (vibrationLength + pauseLength))
             vibrateFlag = true
-            thread = Thread(Runnable {
-                run() {
-                    val preferences =
-                        context.getSharedPreferences("gozdi.eu.missedcallandsmsreminder", Context.MODE_PRIVATE)
-                    val pauseLength = preferences.getInt(context.getString(R.string.pause_length), 500)
-                    val vibrationLength = preferences.getInt(context.getString(R.string.vibration_length), 2500)
-                    val repeatsCount = preferences.getInt(context.getString(R.string.number_of_repeats), 5)
-                    var effect: VibrationEffect =
-                        VibrationEffect.createWaveform(longArrayOf(0, vibrationLength.toLong()), 0)
-                    try {
-                        for (i in 1..repeatsCount) {
-                            Log.i("watek", "dziala")
-                            vib.vibrate(effect)
-                            Thread.sleep(vibrationLength.toLong())
-                            vib.cancel()
-                            Thread.sleep(pauseLength.toLong())
-                        }
-                    } catch (e: InterruptedException) {
-                        vib.cancel()
-                        Thread.currentThread().interrupt()
-                    }
+            vib.vibrate(effect)
 
-                }
-            }
-            )
-            thread.start()
-        } else if (intent.getAction().equals(Intent.ACTION_SCREEN_ON) && vibrateFlag == true) {
+        } else if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF) && vibrateFlag == true) {
             vib.cancel()
-            thread.interrupt()
-            Log.i("watek", "przerwany")
             vibrateFlag = false
-
+            if(screenLock.isHeld){
+                screenLock.release()
+            }
             SMSReceiver.finito(context)
         }
     }

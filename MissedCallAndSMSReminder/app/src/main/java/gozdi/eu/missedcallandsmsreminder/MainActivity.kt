@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.content.SharedPreferences
+import android.util.Log
 import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
@@ -19,8 +20,8 @@ import android.widget.CompoundButton
 class MainActivity : Activity() {
     lateinit var preferences: SharedPreferences
     lateinit var prefEditor: SharedPreferences.Editor
-    override fun onCreate(savedInstanceState: Bundle?) {
 
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val fin = intent
         if (fin.hasExtra("finish")) {
@@ -28,17 +29,16 @@ class MainActivity : Activity() {
         }
 
 
-        if(!checkPermissions()){
+        if (!checkPermissions()) {
             finish()
         }
 
 
-            setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_main)
         preferences = this.getSharedPreferences("gozdi.eu.missedcallandsmsreminder", Context.MODE_PRIVATE)
         prefEditor = preferences.edit()
         setupScreen()
     }
-
 
     private fun setupScreen() {
         setupGlobalSwitch()

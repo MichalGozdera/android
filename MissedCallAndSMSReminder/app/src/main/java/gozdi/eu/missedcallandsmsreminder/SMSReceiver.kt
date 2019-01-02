@@ -26,7 +26,6 @@ class SMSReceiver : BroadcastReceiver() {
             screenLock.release()
         }
         val filter = IntentFilter(Intent.ACTION_SCREEN_OFF)
-        filter.addAction(Intent.ACTION_SCREEN_ON)
         context.applicationContext.registerReceiver(screenOffReceiver, filter)
 
     }

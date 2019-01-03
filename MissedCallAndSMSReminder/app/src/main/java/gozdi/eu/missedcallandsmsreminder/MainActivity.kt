@@ -139,7 +139,10 @@ class MainActivity : Activity() {
         Manifest.permission.RECEIVE_SMS,
         Manifest.permission.READ_SMS,
         Manifest.permission.READ_CONTACTS,
-        Manifest.permission.READ_PHONE_STATE
+        Manifest.permission.READ_PHONE_STATE,
+        Manifest.permission.RECEIVE_MMS,
+        Manifest.permission.RECEIVE_WAP_PUSH,
+        Manifest.permission.READ_CALENDAR
     )
 
     private fun checkPermissions(): Boolean {
